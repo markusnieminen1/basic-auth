@@ -1,8 +1,8 @@
 package models
 
 type UserManager interface {
-	NewUser(username, email, password string) (userId int, err error)
-	ChangePassword(userId int, newPassword string) (err error)
-	ChangeEmail(userId int, newEmail string) (err error)
-	ChangeUsername(userId int, newUsername string) (err error)
+	NewUser(user User) (userId int, err error)
+	ChangePassword(user User) (err error)
+	ChangeEmail(user User) (err error)
+	ChangeUsername(user User) (err error)
 }
