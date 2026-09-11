@@ -25,4 +25,9 @@ var (
 	ErrUsernameInvalidChar = errors.New("username contains invalid characters (only alphanumeric, underscores, or hyphens allowed)")
 	// User ID
 	ErrIDNegative = errors.New("user id cannot be negative")
+
+	// ----------------
+	// DATABASE ERRORS
+	// ----------------
+	ErrOpenDbFail = errors.New("user id cannot be negative")
 )
