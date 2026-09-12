@@ -1,22 +1,25 @@
 package service
 
 import (
+	"context"
+
 	"github.com/markusnieminen1/basic-auth/internal/validating"
 	"github.com/markusnieminen1/basic-auth/models"
 )
 
 type UserManagerService struct {
 	UserValidator  validating.UserDataValidator
-	UserRepository string
+	UserRepository models.UserManagerDatabase
+	Crypto         string // Interface for hashing
 }
 
-func (u *UserManagerService) NewUser(user models.User) (userId int, err error) {
+func (u *UserManagerService) NewUser(ctx context.Context, user models.AllUserProfileAuthData) (userId int64, err error) {
 
 	if err = u.UserValidator.ValidateEmail(user.Email); err != nil {
 		return
 	}
 
-	if err = u.UserValidator.ValidatePassword(user.Password); err != nil {
+	if err = u.UserValidator.ValidatePassword(user.PasswordPlain); err != nil {
 		return
 	}
 
@@ -24,29 +27,32 @@ func (u *UserManagerService) NewUser(user models.User) (userId int, err error) {
 		return
 	}
 
-	// Call repo layer
+	user.PasswordHash = "reallygoodhashyesyes" // TODO: Add crypto and Hash password here
+	user.PasswordPlain = ""
 
-	return 1, nil
+	userId, err = u.UserRepository.CreateUser(ctx, user)
+
+	return
 
 }
 
-func (u *UserManagerService) ChangePassword(user models.User) (err error) {
+func (u *UserManagerService) ChangePassword(ctx context.Context, user models.AllUserProfileAuthData) (err error) {
 
 	if err = u.UserValidator.ValidateUserID(user.UserID); err != nil {
 		return
 	}
 
-	if err = u.UserValidator.ValidatePassword(user.Password); err != nil {
+	if err = u.UserValidator.ValidatePassword(user.PasswordPlain); err != nil {
 		return
 	}
 
-	// Call repo layer
+	err = u.UserRepository.ChangePwd(ctx, user)
 
-	return nil
+	return
 
 }
 
-func (u *UserManagerService) ChangeEmail(user models.User) (err error) {
+func (u *UserManagerService) ChangeEmail(ctx context.Context, user models.AllUserProfileAuthData) (err error) {
 
 	if err = u.UserValidator.ValidateUserID(user.UserID); err != nil {
 		return
@@ -56,13 +62,13 @@ func (u *UserManagerService) ChangeEmail(user models.User) (err error) {
 		return
 	}
 
-	// Call repo layer
+	err = u.UserRepository.ChangeEmail(ctx, user)
 
-	return nil
+	return
 
 }
 
-func (u *UserManagerService) ChangeUsername(user models.User) (err error) {
+func (u *UserManagerService) ChangeUsername(ctx context.Context, user models.AllUserProfileAuthData) (err error) {
 
 	if err = u.UserValidator.ValidateUserID(user.UserID); err != nil {
 		return
@@ -72,8 +78,32 @@ func (u *UserManagerService) ChangeUsername(user models.User) (err error) {
 		return
 	}
 
-	// Call repo layer
+	err = u.UserRepository.ChangeUsername(ctx, user)
 
-	return nil
+	return
+
+}
+
+func (u *UserManagerService) GetUserByID(ctx context.Context, user_id int64) (user *models.LimitedUserAuthData, err error) {
+
+	if err = u.UserValidator.ValidateUserID(user_id); err != nil {
+		return
+	}
+
+	user, err = u.UserRepository.GetUserByID(ctx, user_id)
+
+	return
+
+}
+
+func (u *UserManagerService) DeleteUser(ctx context.Context, user_id int64) (err error) {
+
+	if err = u.UserValidator.ValidateUserID(user_id); err != nil {
+		return
+	}
+
+	err = u.UserRepository.DeleteUser(ctx, user_id)
+
+	return
 
 }

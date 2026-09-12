@@ -1,0 +1,4 @@
+github.com/markusnieminen1/basic-auth v0.0.2 h1:8ZFfUzIdr6fxZ/JulBz1R9MtlwE/2OGY96/wI6MquSw=
+github.com/markusnieminen1/basic-auth v0.0.2/go.mod h1:EbI9OKNronY+tXwNxneC+fD95qq8hS6XPE0NhF+4CwI=
+github.com/mattn/go-sqlite3 v1.14.52 h1:wVbm2Qnf4OXkqhBTSPuCRZDRnxfbVrrmiCEroVdog8U=
+github.com/mattn/go-sqlite3 v1.14.52/go.mod h1:6JTjA44L93a0QCyJef5YvlPoKXntQPjzWv5gtm9sB6w=

@@ -1,5 +1,5 @@
 // Functions for creating functionality with defaults
-package basicauth
+package auth
 
 import (
 	"net/http"
@@ -8,10 +8,9 @@ import (
 	"github.com/markusnieminen1/basic-auth/internal"
 	"github.com/markusnieminen1/basic-auth/internal/validating"
 	"github.com/markusnieminen1/basic-auth/models"
+	"github.com/markusnieminen1/basic-auth/repository/database/dummydbfortest"
 	"github.com/markusnieminen1/basic-auth/service"
 )
-
-const ()
 
 type Application struct {
 	UserManager       models.UserManager
@@ -20,6 +19,10 @@ type Application struct {
 	CookieManager     models.CookieManager
 	AuthManager       models.AuthManager
 
+	Handlers AuthHandlers
+}
+
+type AuthHandlers struct {
 	LoginHandler        http.Handler
 	LogoutHandler       http.Handler
 	RegisterUserHandler http.Handler
@@ -31,23 +34,28 @@ type Application struct {
 
 // Basic config
 func NewBaseConfigApp() Application {
-
 	return Application{
-		UserManager: &service.UserManagerService{UserValidator: validating.NewUserValidator()},
 
-		LoginHandler:        &handlers.LoginHandler{},
-		LogoutHandler:       &handlers.LogoutHandler{},
-		RegisterUserHandler: &handlers.RegisterHandler{},
+		UserManager: &service.UserManagerService{
+			UserValidator:  validating.NewUserValidator(),
+			UserRepository: &dummydbfortest.UserManagerRepo{},
+		},
 
-		ExtractCookiesMidWare: handlers.ExtractHeaders(func(h http.Header) models.ToExtract {
-			return models.ToExtract{
-				AccessToken:  h.Get(internal.ACCESS_TOKEN_NAME),
-				RefreshToken: h.Get(internal.REFRESH_TOKEN_NAME),
-			}
-		}),
+		Handlers: AuthHandlers{
+			LoginHandler:        &handlers.LoginHandler{},
+			LogoutHandler:       &handlers.LogoutHandler{},
+			RegisterUserHandler: &handlers.RegisterHandler{},
 
-		RatelimitMidWare:     handlers.Ratelimiting,
-		ValidateTokenMidWare: handlers.ValidateToken,
+			ExtractCookiesMidWare: handlers.ExtractHeaders(func(h http.Header) models.ToExtract {
+				return models.ToExtract{
+					AccessToken:  h.Get(internal.ACCESS_TOKEN_NAME),
+					RefreshToken: h.Get(internal.REFRESH_TOKEN_NAME),
+				}
+			}),
+
+			RatelimitMidWare:     handlers.Ratelimiting,
+			ValidateTokenMidWare: handlers.ValidateToken,
+		},
 	}
 }
 
@@ -55,8 +63,9 @@ func NewBaseConfigApp() Application {
 func NewCustomConfigApp(cfg Application) Application {
 	app := NewBaseConfigApp()
 
-	mux := http.NewServeMux()
-	mux.Handle("/something", app.ExtractCookiesMidWare(app.LoginHandler))
+	if cfg.UserManager != nil {
+		app.UserManager = cfg.UserManager
+	}
 
-	return Application{}
+	return app
 }
