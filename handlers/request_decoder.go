@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/markusnieminen1/basic-auth/repository/customerrors"
+	"github.com/markusnieminen1/basic-auth/domain/customerrors"
 )
 
 func GeneralDecoder[T any](r *http.Request, obj *T) error {

@@ -4,7 +4,7 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/markusnieminen1/basic-auth/repository/customerrors"
+	"github.com/markusnieminen1/basic-auth/domain/customerrors"
 )
 
 func (u *UserDataValidator) ValidateUsername(username string) error {

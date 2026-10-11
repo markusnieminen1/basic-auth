@@ -3,7 +3,7 @@ package validating
 import (
 	"unicode"
 
-	"github.com/markusnieminen1/basic-auth/repository/customerrors"
+	"github.com/markusnieminen1/basic-auth/domain/customerrors"
 )
 
 func (u *UserDataValidator) ValidatePassword(password string) error {

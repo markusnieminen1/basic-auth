@@ -1,15 +1,13 @@
 package validating
 
-import "github.com/markusnieminen1/basic-auth/models"
-
 type UserDataValidator struct {
-	passwordrules models.PasswordRules
-	usernamerules models.UsernameRules
+	passwordrules PasswordRules
+	usernamerules UsernameRules
 }
 
-func NewUserValidator() UserDataValidator {
+func NewUserValidatorDefaultSetup() UserDataValidator {
 	return UserDataValidator{
-		passwordrules: DefaultPasswordRules(),
-		usernamerules: DefaultUsernameRules(),
+		passwordrules: NewDefaultPasswordRules(),
+		usernamerules: NewDefaultUsernameRules(),
 	}
 }

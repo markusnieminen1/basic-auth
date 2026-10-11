@@ -30,3 +30,11 @@ go.work.sum
 # Editor/IDE
 # .idea/
 # .vscode/
+
+# Auth runtime files: never commit signing keys or the local database
+jwt_ed25519.pem
+*.pem
+auth.db
+auth.db-*
+
+.DS_Store
