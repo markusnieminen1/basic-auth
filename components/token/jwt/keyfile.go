@@ -47,13 +47,13 @@ func LoadOrCreateKey(path string) (ed25519.PrivateKey, error) {
 	return key, nil
 }
 
-// NewEdDSAFromFile builds an EdDSA strategy from LoadOrCreateKey(path).
-func NewEdDSAFromFile(path string, opts ...Option) (*Strategy, error) {
+// NewEdDSAFromFile builds an EdDSA Access from LoadOrCreateKey(path).
+func NewEdDSAFromFile(path string) (*Access, error) {
 	key, err := LoadOrCreateKey(path)
 	if err != nil {
 		return nil, err
 	}
-	return NewEdDSA(key, opts...)
+	return NewEdDSALogic(key)
 }
 
 func readKey(path string) (ed25519.PrivateKey, error) {

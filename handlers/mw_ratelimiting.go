@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"encoding/json"
 	"net"
 	"net/http"
 	"sync"
@@ -10,55 +9,53 @@ import (
 	"github.com/markusnieminen1/basic-auth/domain/customerrors"
 )
 
+// SimpleRateLimiter allows maxHits requests per remote address in each fixed window.
+// It keeps its counters in memory, so the limit is per process.
 type SimpleRateLimiter struct {
-	mu       sync.Mutex
-	requests map[string]int
-	window   time.Duration
-	maxHits  int
+	mu          sync.Mutex
+	requests    map[string]int
+	windowStart time.Time
+	window      time.Duration
+	maxHits     int
 }
 
 func NewSimpleRateLimiter(maxHits int, window time.Duration) *SimpleRateLimiter {
-	rl := &SimpleRateLimiter{
-		requests: make(map[string]int),
-		window:   window,
-		maxHits:  maxHits,
+	return &SimpleRateLimiter{
+		requests:    make(map[string]int),
+		windowStart: time.Now(),
+		window:      window,
+		maxHits:     maxHits,
 	}
+}
 
-	go func() {
-		for {
-			time.Sleep(rl.window)
-			rl.mu.Lock()
-			rl.requests = make(map[string]int)
-			rl.mu.Unlock()
-		}
-	}()
+// allow counts one request from ip and reports whether it is within the limit.
+// The counters are cleared lazily when a request arrives after the window ended,
+// so the limiter needs no background goroutine that could never be stopped.
+func (rl *SimpleRateLimiter) allow(ip string) bool {
+	rl.mu.Lock()
+	defer rl.mu.Unlock()
 
-	return rl
+	if now := time.Now(); now.Sub(rl.windowStart) >= rl.window {
+		rl.requests = make(map[string]int)
+		rl.windowStart = now
+	}
+	if rl.requests[ip] >= rl.maxHits {
+		return false
+	}
+	rl.requests[ip]++
+	return true
 }
 
 func (rl *SimpleRateLimiter) Handler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
 		ip, _, err := net.SplitHostPort(r.RemoteAddr)
-
 		if err != nil {
 			ip = r.RemoteAddr
 		}
-		rl.mu.Lock()
-
-		count := rl.requests[ip]
-
-		if count >= rl.maxHits {
-			rl.mu.Unlock()
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusTooManyRequests)
-			json.NewEncoder(w).Encode(customerrors.ErrTooManyRequests)
+		if !rl.allow(ip) {
+			WriteErrorHttp(w, customerrors.ErrTooManyRequests)
 			return
 		}
-
-		rl.requests[ip] = count + 1
-		rl.mu.Unlock()
-
 		next.ServeHTTP(w, r)
 	})
 }

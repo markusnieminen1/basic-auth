@@ -5,14 +5,13 @@ import (
 	"errors"
 	"fmt"
 
-	"golang.org/x/crypto/bcrypt"
-
 	"github.com/markusnieminen1/basic-auth/components/hashing"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // DefaultCost is the work factor used unless WithCost says otherwise.
 // Each step doubles the time one hash takes.
-const DefaultCost = 12
+var DefaultCost = 12
 
 type Hasher struct {
 	cost int

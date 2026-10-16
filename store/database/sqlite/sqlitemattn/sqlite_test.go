@@ -1,4 +1,4 @@
-package mattn_test
+package sqlitemattn_test
 
 import (
 	"context"
@@ -14,7 +14,7 @@ import (
 	"github.com/markusnieminen1/basic-auth/domain/sharedmodels"
 	"github.com/markusnieminen1/basic-auth/service"
 	"github.com/markusnieminen1/basic-auth/store/database/sqlite"
-	"github.com/markusnieminen1/basic-auth/store/database/sqlite/mattn"
+	"github.com/markusnieminen1/basic-auth/store/database/sqlite/sqlitemattn"
 	"github.com/markusnieminen1/basic-auth/store/session"
 	sessionsqlite "github.com/markusnieminen1/basic-auth/store/session/sqlite"
 	"github.com/markusnieminen1/basic-auth/store/user"
@@ -27,7 +27,7 @@ var ctx = context.Background()
 
 func openDB(t *testing.T) *sql.DB {
 	t.Helper()
-	db, err := mattn.Open(ctx, filepath.Join(t.TempDir(), "auth.db"))
+	db, err := sqlitemattn.Open(ctx, filepath.Join(t.TempDir(), "auth.db"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -47,7 +47,7 @@ func newUser(t *testing.T, repo user.Repository, name string) int64 {
 func TestOpenIsIdempotent(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "auth.db")
 	for i := 0; i < 2; i++ {
-		db, err := mattn.Open(ctx, path)
+		db, err := sqlitemattn.Open(ctx, path)
 		if err != nil {
 			t.Fatalf("open #%d: %v", i, err)
 		}
@@ -147,11 +147,11 @@ func TestSessionRepository(t *testing.T) {
 		t.Errorf("expired = %v, want ErrNotFound", err)
 	}
 
-	if err = sessions.Revoke(ctx, "h1"); err != nil {
-		t.Fatal(err)
+	if revoked, err := sessions.Revoke(ctx, "h1"); err != nil || !revoked {
+		t.Fatalf("first Revoke = %v, %v; want true", revoked, err)
 	}
-	if err = sessions.Revoke(ctx, "h1"); err != nil {
-		t.Errorf("revoking twice must be idempotent, got %v", err)
+	if revoked, err := sessions.Revoke(ctx, "h1"); err != nil || revoked {
+		t.Errorf("second Revoke = %v, %v; want false and no error", revoked, err)
 	}
 
 	for i := 0; i < 3; i++ {

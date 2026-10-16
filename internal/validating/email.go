@@ -17,8 +17,9 @@ func (u *UserDataValidator) ValidateEmail(email string) error {
 		return customerrors.ErrEmailTooLong
 	}
 
-	_, err := mail.ParseAddress(trimmed)
-	if err != nil {
+	// ParseAddress also accepts "Name <a@b.com>", but only the bare address may be stored.
+	parsed, err := mail.ParseAddress(trimmed)
+	if err != nil || parsed.Address != trimmed {
 		return customerrors.ErrEmailInvalid
 	}
 

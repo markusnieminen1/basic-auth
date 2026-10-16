@@ -21,6 +21,10 @@ func (u *UserDataValidator) ValidateUsername(username string) error {
 		return customerrors.ErrUsernameTooLong
 	}
 
+	if strings.ContainsAny(trimmed, u.usernamerules.ForbiddenChars) {
+		return customerrors.ErrUsernameForbiddenChar
+	}
+
 	for _, r := range trimmed {
 		if unicode.IsLetter(r) || unicode.IsDigit(r) {
 			continue

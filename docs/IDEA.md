@@ -42,7 +42,7 @@ Debugging logging.
 ### Notes 
 - Even refresh tokens needs to be hashed. 
 - Hashing algorithm for passwords is bcrypt for it's simplicity.
-- Hashing algorithm for Refresh tokens is std SHA256.
+- Refresh tokens are random UUIDs (v4), renewed on every refresh. The DB stores their SHA256 hash, never the UUID.
 - Access token (JWT or other signed token) 
 - Refresh token per device log in. If password is changed, then revoke all refresh tokens. 
 

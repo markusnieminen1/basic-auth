@@ -71,8 +71,8 @@ func randomHex(n int) (string, error) {
 }
 
 var (
-	_ token.AccessStrategy  = (*Access)(nil)
-	_ token.RefreshStrategy = (*Refresh)(nil)
+	_ token.AccessTokenLogic  = (*Access)(nil)
+	_ token.RefreshTokenLogic = (*Refresh)(nil)
 )
 
 func NewAccess() *Access {

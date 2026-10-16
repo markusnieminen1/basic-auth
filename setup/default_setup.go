@@ -20,6 +20,8 @@ var (
 	PWD_MinDigits    = 1  // Password
 	PWD_MinSymbols   = 1  // Password
 
+	PWD_ForbiddenChars = " " // Password, every character in the string is rejected, e.g. " \t" or "<>"
+
 	// --------------
 	// Username
 	// --------------
@@ -27,6 +29,8 @@ var (
 	UName_MinLength         = 3    // Username
 	UName_MaxLength         = 30   // Username
 	UName_AllowSpecialChars = true // Username
+
+	UName_ForbiddenChars = "" // Username, every character in the string is rejected on top of the allowed character rules
 
 	// --------------
 	// Middleware

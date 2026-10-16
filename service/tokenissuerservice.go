@@ -14,15 +14,15 @@ import (
 // TokenIssuerService combines the access and refresh strategies with the token lifetimes
 // and the access token blacklist (kept in the optional cache).
 type TokenIssuerService struct {
-	access     token.AccessStrategy
-	refresh    token.RefreshStrategy
+	access     token.AccessTokenLogic
+	refresh    token.RefreshTokenLogic
 	cache      caching.Store // optional, nil disables the blacklist
 	accessTTL  time.Duration
 	refreshTTL time.Duration
 }
 
 // NewTokenIssuerService wires the token issuer. Access and refresh are required, cache may be nil.
-func NewTokenIssuerService(access token.AccessStrategy, refresh token.RefreshStrategy, cache caching.Store) (*TokenIssuerService, error) {
+func NewTokenIssuerService(access token.AccessTokenLogic, refresh token.RefreshTokenLogic, cache caching.Store) (*TokenIssuerService, error) {
 	if access == nil {
 		return nil, fmt.Errorf("%w: access token strategy", ErrMissingDependency)
 	}
@@ -45,7 +45,7 @@ func (t *TokenIssuerService) IssueAccessToken(ctx context.Context, userID int64)
 func (t *TokenIssuerService) ValidateAccessToken(ctx context.Context, rawToken string) (int64, error) {
 	if t.cache != nil {
 		if _, err := t.cache.Get(ctx, accessBlacklistKey(rawToken)); err == nil {
-			return 0, errInvalidCredentials
+			return 0, ErrInvalidCredentials
 		} else if !errors.Is(err, caching.ErrMiss) {
 			return 0, err
 		}
@@ -55,9 +55,14 @@ func (t *TokenIssuerService) ValidateAccessToken(ctx context.Context, rawToken s
 
 // RevokeAccessToken blacklists the token until it would have expired anyway.
 // Without a cache there is no blacklist, so access tokens simply expire on their own.
+// A zero validUntil is what a cookie read from a request has, since browsers do not send the
+// expiry back. The token then stays blacklisted for the longest time it can still be valid.
 func (t *TokenIssuerService) RevokeAccessToken(ctx context.Context, rawToken string, validUntil time.Time) error {
 	if t.cache == nil {
 		return nil
+	}
+	if validUntil.IsZero() {
+		validUntil = time.Now().Add(t.accessTTL)
 	}
 	ttl := time.Until(validUntil)
 	if ttl <= 0 {

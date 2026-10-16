@@ -28,7 +28,7 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	authCookies, err := h.AuthenticationService.Login(r.Context(), input)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusUnauthorized)
+		writeServiceError(w, err)
 		return
 	}
 	if authCookies.AccessToken != nil {

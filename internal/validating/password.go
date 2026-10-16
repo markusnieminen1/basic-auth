@@ -1,6 +1,7 @@
 package validating
 
 import (
+	"strings"
 	"unicode"
 
 	"github.com/markusnieminen1/basic-auth/domain/customerrors"
@@ -9,6 +10,10 @@ import (
 func (u *UserDataValidator) ValidatePassword(password string) error {
 	if password == "" {
 		return customerrors.ErrPasswordEmpty
+	}
+
+	if strings.ContainsAny(password, u.passwordrules.ForbiddenChars) {
+		return customerrors.ErrPasswordForbiddenChar
 	}
 
 	if len(password) < u.passwordrules.MinLength {

@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/markusnieminen1/basic-auth/components/hashing"
 	"github.com/markusnieminen1/basic-auth/domain/sharedmodels"
@@ -39,6 +40,10 @@ func NewAccountManagerService(users user.Repository, sessions session.Repository
 }
 
 func (u *AccountManagerService) Register(ctx context.Context, input sharedmodels.RegisterInput) (sharedmodels.LimitedUserAuthData, error) {
+	// The validator ignores surrounding spaces, so they must not reach the database.
+	input.Email = strings.TrimSpace(input.Email)
+	input.Username = strings.TrimSpace(input.Username)
+
 	if err := u.validator.ValidateEmail(input.Email); err != nil {
 		return sharedmodels.LimitedUserAuthData{}, err
 	}
@@ -72,6 +77,7 @@ func (u *AccountManagerService) GetByID(ctx context.Context, userID int64) (shar
 }
 
 func (u *AccountManagerService) UpdateEmail(ctx context.Context, input sharedmodels.UpdateEmailInput) (sharedmodels.LimitedUserAuthData, error) {
+	input.Email = strings.TrimSpace(input.Email)
 	if err := u.validator.ValidateUserID(input.UserID); err != nil {
 		return sharedmodels.LimitedUserAuthData{}, err
 	}
@@ -88,6 +94,7 @@ func (u *AccountManagerService) UpdateEmail(ctx context.Context, input sharedmod
 }
 
 func (u *AccountManagerService) UpdateUsername(ctx context.Context, input sharedmodels.UpdateUsernameInput) (sharedmodels.LimitedUserAuthData, error) {
+	input.Username = strings.TrimSpace(input.Username)
 	if err := u.validator.ValidateUserID(input.UserID); err != nil {
 		return sharedmodels.LimitedUserAuthData{}, err
 	}
@@ -141,7 +148,7 @@ func (u *AccountManagerService) verifyPassword(ctx context.Context, userID int64
 		return err
 	}
 	if !valid {
-		return errInvalidCredentials
+		return ErrInvalidCredentials
 	}
 	return nil
 }

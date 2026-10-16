@@ -25,7 +25,8 @@ type AccountService interface {
 type AuthenticationService interface {
 	Login(ctx context.Context, input sharedmodels.LoginInput) (sharedmodels.AuthCookies, error)
 	Refresh(ctx context.Context, cookies sharedmodels.AuthCookies) (sharedmodels.AuthCookies, error)
-	Logout(ctx context.Context, cookies sharedmodels.AuthCookies) error
+	// Logout revokes the session and returns expired cookies that overwrite the client's tokens.
+	Logout(ctx context.Context, cookies sharedmodels.AuthCookies) (sharedmodels.AuthCookies, error)
 	LogoutAll(ctx context.Context, userID int64) error
 }
 
