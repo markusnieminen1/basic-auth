@@ -8,7 +8,7 @@
 //	app, err := auth.NewAuthApp(auth.Config{})
 //	defer app.Close()
 //	auth_middleware := auth.newAuthMiddleware(app.Authenticator)
-package main
+package auth
 
 import (
 	"context"
